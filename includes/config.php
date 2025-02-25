@@ -14,4 +14,9 @@ if ($conn->connect_error) {
 
 // Définir l'encodage des caractères en UTF-8
 $conn->set_charset("utf8");
+if ($conn) {
+    echo "Connexion réussie à la base de données ! mohammwd ";
+} else {
+    echo "Erreur de connexion.";
+}
 ?>
