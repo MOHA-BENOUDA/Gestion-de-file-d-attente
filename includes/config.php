@@ -15,7 +15,11 @@ if ($conn->connect_error) {
 // Définir l'encodage des caractères en UTF-8
 $conn->set_charset("utf8");
 if ($conn) {
+<<<<<<< HEAD
     echo "connexion ";
+=======
+    echo "Connexion réussie à la base de données !";
+>>>>>>> 1a25b7d (la modification cote user)
 } else {
     echo "Erreur de connexion.";
 }

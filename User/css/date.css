@@ -1,0 +1,94 @@
+/* Importation de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to right, #00c6ff, #0072ff);
+    text-align: center;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    max-width: 800px;
+    width: 90%;
+}
+
+h2 {
+    font-size: 22px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* Table stylisée */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 10px;
+}
+
+.table th {
+    background: #0072ff;
+    color: white;
+}
+
+.table td {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Style des boutons radio */
+input[type="radio"] {
+    transform: scale(1.3);
+    cursor: pointer;
+}
+
+/* Bouton de validation */
+.btn-primary {
+    background: white;
+    color: #0072ff;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+    text-align: center;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #0072ff;
+    color: white;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    .table th, .table td {
+        font-size: 14px;
+        padding: 10px;
+    }
+}

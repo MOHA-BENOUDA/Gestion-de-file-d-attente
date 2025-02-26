@@ -1,53 +1,77 @@
-<?php
-require_once "../includes/config.php";
-
-$position = null;
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $code_unique = $_POST["code_unique"];
-
-    // Récupérer l'ID du RDV
-    $sql = "SELECT id FROM rendez_vous WHERE code_unique = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$code_unique]);
-    $rdv = $stmt->fetch();
-
-    if ($rdv) {
-        $id_rdv = $rdv["id"];
-
-        // Trouver la position dans la file
-        $sql = "SELECT position FROM file_attente WHERE id_rdv = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$id_rdv]);
-        $file = $stmt->fetch();
-
-        if ($file) {
-            $position = $file["position"];
-        } else {
-            echo "Votre rendez-vous a déjà été traité ou annulé.";
-        }
-    } else {
-        echo "Code invalide. Vérifiez et réessayez.";
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Suivre mon tour</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivre Mon Tour</title>
+    <link rel="stylesheet" href="css/suivi.css">
 </head>
 <body>
-    <h1>Suivez votre tour</h1>
-    <form method="POST">
-        <label>Entrez votre code unique :</label>
-        <input type="text" name="code_unique" required>
-        <button type="submit">Vérifier</button>
-    </form>
+    <div class="container">
+        <!-- Formulaire pour entrer le code unique -->
+        <h1>Suivre Mon Tour</h1>
+        <form id="codeForm">
+            <label for="code">Entrez votre code unique :</label>
+            <input type="text" id="code" name="code" required>
+            <button type="submit" class="btn">Valider</button>
+        </form>
 
-    <?php if ($position !== null): ?>
-        <p>Votre position dans la file d'attente : <strong><?php echo $position; ?></strong></p>
-    <?php endif; ?>
+        <!-- Section d'information utilisateur -->
+        <div id="userInfo" style="display: none;">
+            <h2>Informations personnelles</h2>
+            <p id="info"></p>
+            <p id="queueMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        // Simulation d'un code valide et des informations personnelles
+        const validCode = "12345";  // Code unique valide (exemple)
+        const userData = {
+            name: "Jean Dupont",
+            age: 28,
+            phone: "0123456789",
+            email: "jean.dupont@example.com",
+            queuePosition: 3  // Position dans la file d'attente
+        };
+
+        const queueLength = 10;  // Nombre total de personnes dans la file d'attente
+
+        // Formulaire et affichage de l'élément de code
+        const codeForm = document.getElementById('codeForm');
+        const codeInput = document.getElementById('code');
+        const userInfo = document.getElementById('userInfo');
+        const info = document.getElementById('info');
+        const queueMessage = document.getElementById('queueMessage');
+
+        // Lorsque le formulaire est soumis
+        codeForm.addEventListener('submit', function(event) {
+            event.preventDefault();  // Empêche l'envoi du formulaire
+
+            // Vérifier le code entré
+            const enteredCode = codeInput.value.trim();
+            if (enteredCode === validCode) {
+                // Si le code est valide, afficher les informations
+                codeForm.style.display = 'none';  // Masquer le formulaire
+                userInfo.style.display = 'block';  // Afficher les informations
+
+                // Affichage des informations personnelles
+                info.innerHTML = `
+                    <strong>Nom :</strong> ${userData.name}<br>
+                    <strong>Âge :</strong> ${userData.age}<br>
+                    <strong>Téléphone :</strong> ${userData.phone}<br>
+                    <strong>Email :</strong> ${userData.email}
+                `;
+
+                // Calcul du nombre de personnes restantes avant son tour
+                const remainingPeople = queueLength - userData.queuePosition;
+                queueMessage.innerHTML = `Il reste ${remainingPeople} personne(s) avant votre tour.`;
+
+            } else {
+                // Si le code est invalide
+                alert("Code invalide. Essayez à nouveau.");
+            }
+        });
+    </script>
 </body>
 </html>
