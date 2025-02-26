@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $telephone = $_POST["telephone"];
     $date_rdv = $_POST["date_rdv"];
     $heure_rdv = $_POST["heure_rdv"];
-    $code_unique = uniqid(); // Génère un code unique
+    $code_unique = uniqid();
  
     // Vérifier si la date et l'heure ne sont pas bloquées
     $sql = "SELECT * FROM jours_bloques WHERE date_bloquee = ?";

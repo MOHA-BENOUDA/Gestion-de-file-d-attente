@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Bienvenue sur la gestion de file d'attente</h1>
-    
+    <div>
     <a href="rdv.php">
         <button>Prendre un rendez-vous</button>
     </a>
@@ -16,5 +16,6 @@
     <a href="suivi.php">
         <button>Suivre mon tour</button>
     </a>
+    </div>
 </body>
 </html>
