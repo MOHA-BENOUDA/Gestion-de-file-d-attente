@@ -1,95 +1,98 @@
+<?php
+session_start();
+require '../includes/config.php';
+
+if (!isset($_SESSION['cin'])) {
+    header('Location: rdv.php'); 
+    exit();
+}
+
+// Vérifier que le code unique est bien défini
+if (!isset($_SESSION['code_unique'])) {
+    header('Location: rdv.php');
+    exit();
+}
+$code_unique = $_SESSION['code_unique'];
+
+// Définir le fuseau horaire
+date_default_timezone_set('Europe/Paris');
+
+// Récupérer la date actuelle
+$currentDate = new DateTime();
+
+// Gestion du décalage de semaine
+$weekOffset = isset($_GET['week']) ? (int)$_GET['week'] : 0;
+$displayDate = clone $currentDate;
+$displayDate->modify("+$weekOffset week");
+
+// Trouver le lundi de la semaine affichée
+$lundi = clone $displayDate;
+$lundi->modify('-' . ($lundi->format('N') - 1) . ' days');
+
+// Générer les 5 jours de la semaine
+$jours = [];
+for ($i = 0; $i < 5; $i++) {
+    $jours[] = clone $lundi;
+    $lundi->modify('+1 day');
+}
+
+// Heures des rendez-vous
+$heures = ['09-10', '10-11', '11-12', '12-13', '13-14', '14-15', '15-16'];
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choisir Date et Heure</title>
-    <link rel="stylesheet" href="css/date.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container mt-5">
         <h2 class="text-center mb-4">Sélectionner une date et une heure</h2>
-        
-        <form action="traitement_rdv.php" method="POST">
+
+        <form action="confirmation.php" method="POST">
             <div class="table-responsive">
-                <table class="table table-bordered">
+                <table class="table table-bordered text-center">
                     <thead>
                         <tr>
                             <th>Heures</th>
-                            <th>Lundi</th>
-                            <th>Mardi</th>
-                            <th>Mercredi</th>
-                            <th>Jeudi</th>
-                            <th>Vendredi</th>
+                            <?php foreach ($jours as $jour): ?>
+                                <th class="<?= $jour < $currentDate ? 'bg-secondary text-white' : '' ?>">
+                                    <?= $jour->format('d-m-Y') ?>
+                                </th>
+                            <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Boucle sur les horaires de 9h à 16h -->
-                        <tr>
-                            <td>9h - 10h</td>
-                            <td><input type="radio" name="horaire_lundi" value="9-10"></td>
-                            <td><input type="radio" name="horaire_mardi" value="9-10"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="9-10"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="9-10"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="9-10"></td>
-                        </tr>
-                        <tr>
-                            <td>10h - 11h</td>
-                            <td><input type="radio" name="horaire_lundi" value="10-11"></td>
-                            <td><input type="radio" name="horaire_mardi" value="10-11"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="10-11"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="10-11"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="10-11"></td>
-                        </tr>
-                        <tr>
-                            <td>11h - 12h</td>
-                            <td><input type="radio" name="horaire_lundi" value="11-12"></td>
-                            <td><input type="radio" name="horaire_mardi" value="11-12"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="11-12"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="11-12"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="11-12"></td>
-                        </tr>
-                        <tr>
-                            <td>12h - 13h</td>
-                            <td><input type="radio" name="horaire_lundi" value="12-13"></td>
-                            <td><input type="radio" name="horaire_mardi" value="12-13"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="12-13"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="12-13"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="12-13"></td>
-                        </tr>
-                        <tr>
-                            <td>13h - 14h</td>
-                            <td><input type="radio" name="horaire_lundi" value="13-14"></td>
-                            <td><input type="radio" name="horaire_mardi" value="13-14"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="13-14"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="13-14"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="13-14"></td>
-                        </tr>
-                        <tr>
-                            <td>14h - 15h</td>
-                            <td><input type="radio" name="horaire_lundi" value="14-15"></td>
-                            <td><input type="radio" name="horaire_mardi" value="14-15"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="14-15"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="14-15"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="14-15"></td>
-                        </tr>
-                        <tr>
-                            <td>15h - 16h</td>
-                            <td><input type="radio" name="horaire_lundi" value="15-16"></td>
-                            <td><input type="radio" name="horaire_mardi" value="15-16"></td>
-                            <td><input type="radio" name="horaire_mercredi" value="15-16"></td>
-                            <td><input type="radio" name="horaire_jeudi" value="15-16"></td>
-                            <td><input type="radio" name="horaire_vendredi" value="15-16"></td>
-                        </tr>
+                        <?php foreach ($heures as $heure): ?>
+                            <tr>
+                                <td><strong><?= $heure ?>h</strong></td>
+                                <?php foreach ($jours as $jour): ?>
+                                    <td>
+                                        <?php if ($jour >= $currentDate): ?>
+                                            <!-- Utilisation du séparateur "|" pour éviter les conflits avec la date -->
+                                            <input type="radio" name="horaire" value="<?= htmlspecialchars($jour->format('Y-m-d') . '|' . explode('-', $heure)[0]) ?>" required>
+                                        <?php else: ?>
+                                            <span class="text-muted">Indisponible</span>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
-
             <button type="submit" class="btn btn-primary w-100 mt-3">Valider</button>
         </form>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="d-flex justify-content-between mt-3">
+            <?php if ($weekOffset > 0): ?>
+                <a href="date.php?week=<?= $weekOffset - 1 ?>" class="btn btn-secondary">Semaine Précédente</a>
+            <?php endif; ?>
+            <a href="date.php?week=<?= $weekOffset + 1 ?>" class="btn btn-secondary">Semaine Suivante</a>
+        </div>
+    </div>
 </body>
 </html>

@@ -2,7 +2,7 @@
 $host = "localhost"; // Serveur MySQL (XAMPP)
 $user = "root";      // Par défaut, XAMPP utilise "root"
 $password = "";      // Par défaut, pas de mot de passe
-$dbname = "gestion"; // Nom de ta base de données
+$dbname = "gestion_rdv"; // Nom de ta base de données
 
 // Connexion à la base de données
 $conn = new mysqli($host, $user, $password, $dbname);
@@ -15,11 +15,9 @@ if ($conn->connect_error) {
 // Définir l'encodage des caractères en UTF-8
 $conn->set_charset("utf8");
 if ($conn) {
-<<<<<<< HEAD
-    echo "connexion ";
-=======
-    echo "Connexion réussie à la base de données !";
->>>>>>> 1a25b7d (la modification cote user)
+
+    //echo "connexion ";
+   // echo "Connexion réussie à la base de données !";
 } else {
     echo "Erreur de connexion.";
 }
