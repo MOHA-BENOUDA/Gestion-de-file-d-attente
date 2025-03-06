@@ -1,22 +1,13 @@
 <?php
-$host = "localhost"; // Serveur MySQL (XAMPP)
-$user = "root";      // Par défaut, XAMPP utilise "root"
-$password = "";      // Par défaut, pas de mot de passe
-$dbname = "gestion"; // Nom de ta base de données
+$host = 'localhost';
+$db = 'gestion';
+$user = 'root';
+$pass = '';
 
-// Connexion à la base de données
-$conn = new mysqli($host, $user, $password, $dbname);
-
-// Vérifier la connexion
-if ($conn->connect_error) {
-    die("Échec de la connexion : " . $conn->connect_error);
-}
-
-// Définir l'encodage des caractères en UTF-8
-$conn->set_charset("utf8");
-if ($conn) {
-    echo "connexion ";
-} else {
-    echo "Erreur de connexion.";
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo 'Connection failed: ' . $e->getMessage();
 }
 ?>

@@ -24,11 +24,12 @@ $result_rendezvous = $conn->query("SELECT * FROM rendez_vous");
     <link rel="stylesheet" href="dash-style.css">
 </head>
 <body>
+<h2>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
     <div class="dashboard-container">
-        <h2>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
+       
         <a href="logout.php">Déconnexion</a>
 
-        <h3>Liste des Patients en Attente</h3>
+        <h3>Liste des Patients en Attente ff</h3>
         <table>
             <thead>
                 <tr>

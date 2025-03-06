@@ -52,7 +52,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <title>Connexion Administrateur</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="">
 </head>
 <body>
     <div class="login-container">
