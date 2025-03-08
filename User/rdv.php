@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../includes/config.php'; // Connexion à la BD
+require '../includes/config.php'; // Connexion  BD
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($_POST['cin']) || empty($_POST['nom']) || empty($_POST['prenom']) || empty($_POST['email']) || empty($_POST['telephone'])) {

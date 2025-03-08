@@ -1,99 +1,94 @@
-<?php
-session_start();
-require_once '../includes/config.php'; // Assurez-vous que ce fichier contient $conn
-
-// Vérifier si l'utilisateur est connecté
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
-}
-
-// Récupérer la liste des patients en attente
-$result_file_attente = $conn->query("SELECT * FROM file_attente");
-
-// Récupérer la liste des rendez-vous
-$result_rendezvous = $conn->query("SELECT * FROM rendez_vous");
-
-?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Administrateur</title>
-    <link rel="stylesheet" href="dash-style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestion des RDV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <div class="dashboard-container">
-        <h2>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
-        <a href="logout.php">Déconnexion</a>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="flex h-screen">
+        <aside class="w-64 bg-blue-900 text-white p-5">
+            <h2 class="text-xl font-bold">Gestion RDV</h2>
+            <nav class="mt-5">
+                <a href="#" class="block py-2 px-3 bg-blue-800 rounded mt-2">📊 Dashboard</a>
+                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
+                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
+                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
+                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
+            </nav>
+        </aside>
 
-        <h3>Liste des Patients en Attente</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Numéro de Passage</th>
-                    <th>Nom du Patient</th>
-                    <th>Heure d'Arrivée</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = $result_file_attente->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['numero_passage']; ?></td>
-                    <td><?php echo htmlspecialchars($row['nom_patient']); ?></td>
-                    <td><?php echo htmlspecialchars($row['heure_arrivee']); ?></td>
-                    <td>
-                        <a href="appeler_patient.php?id=<?php echo $row['id']; ?>">Appeler</a>
-                        <a href="remove_patient.php?id=<?php echo $row['id']; ?>">Supprimer</a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-        
-        <h3>Ajouter un Patient à la File</h3>
-        <form method="post" action="add_patient.php">
-            <label for="nom_patient">Nom du Patient:</label>
-            <input type="text" id="nom_patient" name="nom_patient" required>
+        <!-- Contenu principal -->
+        <main class="flex-1 p-6">
+            <h1 class="text-2xl font-bold">📊 Tableau de bord</h1>
+            
+            <!-- Statistiques -->
+            <div class="grid grid-cols-4 gap-4 mt-6">
+                <div class="bg-white p-4 shadow rounded-lg">
+                    <h3 class="text-gray-600">Total RDV</h3>
+                    <p class="text-2xl font-bold">120</p>
+                </div>
+                <div class="bg-white p-4 shadow rounded-lg">
+                    <h3 class="text-gray-600">En attente</h3>
+                    <p class="text-2xl font-bold">45</p>
+                </div>
+                <div class="bg-white p-4 shadow rounded-lg">
+                    <h3 class="text-gray-600">Validés</h3>
+                    <p class="text-2xl font-bold">60</p>
+                </div>
+                <div class="bg-white p-4 shadow rounded-lg">
+                    <h3 class="text-gray-600">Annulés</h3>
+                    <p class="text-2xl font-bold">15</p>
+                </div>
+            </div>
 
-            <label for="heure_arrivee">Heure d'Arrivée:</label>
-            <input type="time" id="heure_arrivee" name="heure_arrivee" required>
+            <!-- Graphique des RDV -->
+            <div class="bg-white mt-6 p-4 shadow rounded-lg">
+                <canvas id="chartRDV"></canvas>
+            </div>
 
-            <button type="submit">Ajouter</button>
-        </form>
-
-        <h3>Liste des Rendez-vous</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom du Patient</th>
-                    <th>Date</th>
-                    <th>Heure</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = $result_rendezvous->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo htmlspecialchars($row['nom_patient']); ?></td>
-                    <td><?php echo htmlspecialchars($row['date']); ?></td>
-                    <td><?php echo htmlspecialchars($row['heure']); ?></td>
-                    <td>
-                        <a href="edit_rendezvous.php?id=<?php echo $row['id']; ?>">Modifier</a>
-                        <a href="delete_rendezvous.php?id=<?php echo $row['id']; ?>">Annuler</a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+            <!-- Tableau des rendez-vous -->
+            <div class="bg-white mt-6 p-4 shadow rounded-lg">
+                <h3 class="text-lg font-bold">📅 Liste des Rendez-vous</h3>
+                <table class="w-full mt-4">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="py-2 px-4">Nom</th>
+                            <th class="py-2 px-4">Email</th>
+                            <th class="py-2 px-4">Date</th>
+                            <th class="py-2 px-4">État</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="py-2 px-4">Othmane</td>
+                            <td class="py-2 px-4">othmane@gmail.com</td>
+                            <td class="py-2 px-4">06/03/2025</td>
+                            <td class="py-2 px-4 text-green-500">En attente</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
+
+    <script>
+        // Graphique des RDV avec Chart.js
+        const ctx = document.getElementById('chartRDV').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
+                datasets: [{
+                    label: 'Nombre de RDV',
+                    data: [10, 20, 15, 30, 25],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            },
+        });
+    </script>
 </body>
 </html>
-
-<?php
-$conn->close();
-?>
