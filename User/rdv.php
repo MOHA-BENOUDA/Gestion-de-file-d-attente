@@ -1,46 +1,37 @@
 <?php
-require_once "../includes/config.php";
+session_start();
+require '../includes/config.php'; // Connexion à la BD
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nom = $_POST["nom"];
-    $email = $_POST["email"];
-    $telephone = $_POST["telephone"];
-    $date_rdv = $_POST["date_rdv"];
-    $heure_rdv = $_POST["heure_rdv"];
-    $code_unique = uniqid();
- 
-    // Vérifier si la date et l'heure ne sont pas bloquées
-    $sql = "SELECT * FROM jours_bloques WHERE date_bloquee = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$date_rdv]);
-    if ($stmt->rowCount() > 0) {
-        die("Cette date est bloquée. Veuillez choisir une autre date.");
+    if (empty($_POST['cin']) || empty($_POST['nom']) || empty($_POST['prenom']) || empty($_POST['email']) || empty($_POST['telephone'])) {
+        $erreur = "Tous les champs sont obligatoires.";
+    } else {
+        $_SESSION['cin'] = $_POST['cin'];
+        $_SESSION['nom'] = $_POST['nom'];
+        $_SESSION['prenom'] = $_POST['prenom'];
+        $_SESSION['email'] = $_POST['email'];
+        $_SESSION['telephone'] = $_POST['telephone'];
+
+        // Générer un code unique et l'enregistrer dans la session
+        $lettres = strtoupper(substr(str_shuffle("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 2));
+        $chiffres = str_pad(mt_rand(0, 999999), 6, "0", STR_PAD_LEFT);
+        $code_unique = $lettres . $chiffres;
+        $_SESSION['code_unique'] = $code_unique;  // ✅ Ajout du stockage dans la session
+
+        // Vérifier si l'utilisateur a déjà un rendez-vous
+        $stmt_check = $conn->prepare("SELECT id FROM rendez_vous WHERE cin = ?");
+        $stmt_check->bind_param("s", $_SESSION['cin']);
+        $stmt_check->execute();
+        $stmt_check->store_result();
+
+        if ($stmt_check->num_rows > 0) {
+            $erreur = "Cet utilisateur a déjà un rendez-vous.";
+        } else {
+            // Rediriger vers la page de sélection de la date
+            header("Location: date.php");
+            exit();
+        }
     }
-
-    $sql = "SELECT * FROM heures_bloquees WHERE date_bloquee = ? AND heure_bloquee = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$date_rdv, $heure_rdv]);
-    if ($stmt->rowCount() > 0) {
-        die("Cet horaire est bloqué. Veuillez choisir un autre créneau.");
-    }
-
-    // Ajouter le rendez-vous
-    $sql = "INSERT INTO rendez_vous (nom, email, telephone, date_rdv, heure_rdv, code_unique) VALUES (?, ?, ?, ?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$nom, $email, $telephone, $date_rdv, $heure_rdv, $code_unique]);
-
-    $id_rdv = $pdo->lastInsertId(); // Récupérer l'ID du RDV
-
-    // Ajouter à la file d'attente
-    $sql = "SELECT COUNT(*) AS position FROM file_attente";
-    $stmt = $pdo->query($sql);
-    $position = $stmt->fetch()["position"] + 1;
-
-    $sql = "INSERT INTO file_attente (id_rdv, position) VALUES (?, ?)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$id_rdv, $position]);
-
-    echo "Votre rendez-vous a été enregistré ! Votre code unique est : <strong>$code_unique</strong>";
 }
 ?>
 
@@ -48,27 +39,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prendre un Rendez-vous</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <h1>Prendre un Rendez-vous</h1>
-    <form method="POST">
-        <label>Nom :</label>
-        <input type="text" name="nom" required>
+    <div class="container mt-5">
+        <h2 class="text-center">Prendre un Rendez-vous</h2>
         
-        <label>Email :</label>
-        <input type="email" name="email" required>
+        <?php if (isset($erreur)): ?>
+            <div class="alert alert-danger"><?= $erreur ?></div>
+        <?php endif; ?>
 
-        <label>Téléphone :</label>
-        <input type="text" name="telephone" required>
-
-        <label>Date du Rendez-vous :</label>
-        <input type="date" name="date_rdv" required>
-
-        <label>Heure du Rendez-vous :</label>
-        <input type="time" name="heure_rdv" required>
-
-        <button type="submit">Valider</button>
-    </form>
+        <form action="" method="post">
+            <div class="mb-3">
+                <label class="form-label">CIN :</label>
+                <input type="text" name="cin" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nom :</label>
+                <input type="text" name="nom" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Prénom :</label>
+                <input type="text" name="prenom" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email :</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Téléphone :</label>
+                <input type="tel" name="telephone" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Suivant</button>
+        </form>
+    </div>
 </body>
 </html>

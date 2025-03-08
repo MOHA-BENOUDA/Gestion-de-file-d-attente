@@ -1,100 +1,39 @@
-<?php
-session_start();
-require_once '../includes/config.php'; // Assurez-vous que ce fichier contient $conn
-
-// Vérifier si l'utilisateur est connecté
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
-}
-
-// Récupérer la liste des patients en attente
-$result_file_attente = $conn->query("SELECT * FROM file_attente");
-
-// Récupérer la liste des rendez-vous
-$result_rendezvous = $conn->query("SELECT * FROM rendez_vous");
-
-?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Administrateur</title>
-    <link rel="stylesheet" href="dash-style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f4f4f4; }
+        h1 { margin-bottom: 20px; }
+        .container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .btn {
+            width: 250px;
+            height: 150px;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn:hover { transform: scale(1.1); }
+        .rdv { background: #3498db; }      /* Bleu */
+        .file { background: #e67e22; }     /* Orange */
+        .jour { background: #2ecc71; }     /* Vert */
+        .heure { background: #e74c3c; }    /* Rouge */
+    </style>
 </head>
 <body>
-<h2>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
-    <div class="dashboard-container">
-       
-        <a href="logout.php">Déconnexion</a>
-
-        <h3>Liste des Patients en Attente ff</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Numéro de Passage</th>
-                    <th>Nom du Patient</th>
-                    <th>Heure d'Arrivée</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = $result_file_attente->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['numero_passage']; ?></td>
-                    <td><?php echo htmlspecialchars($row['nom_patient']); ?></td>
-                    <td><?php echo htmlspecialchars($row['heure_arrivee']); ?></td>
-                    <td>
-                        <a href="appeler_patient.php?id=<?php echo $row['id']; ?>">Appeler</a>
-                        <a href="remove_patient.php?id=<?php echo $row['id']; ?>">Supprimer</a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-        
-        <h3>Ajouter un Patient à la File</h3>
-        <form method="post" action="add_patient.php">
-            <label for="nom_patient">Nom du Patient:</label>
-            <input type="text" id="nom_patient" name="nom_patient" required>
-
-            <label for="heure_arrivee">Heure d'Arrivée:</label>
-            <input type="time" id="heure_arrivee" name="heure_arrivee" required>
-
-            <button type="submit">Ajouter</button>
-        </form>
-
-        <h3>Liste des Rendez-vous</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom du Patient</th>
-                    <th>Date</th>
-                    <th>Heure</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = $result_rendezvous->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo htmlspecialchars($row['nom_patient']); ?></td>
-                    <td><?php echo htmlspecialchars($row['date']); ?></td>
-                    <td><?php echo htmlspecialchars($row['heure']); ?></td>
-                    <td>
-                        <a href="edit_rendezvous.php?id=<?php echo $row['id']; ?>">Modifier</a>
-                        <a href="delete_rendezvous.php?id=<?php echo $row['id']; ?>">Annuler</a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+    <h1>Tableau de Bord Administrateur</h1>
+    <div class="container">
+        <button class="btn rdv">📆 Gestion des Rendez-vous</button>
+        <button class="btn file">⏳ Gestion de la File d'Attente</button>
+        <button class="btn jour">📅 Jours Bloqués</button>
+        <button class="btn heure">⏰ Heures Bloquées</button>
     </div>
 </body>
 </html>
-
-<?php
-$conn->close();
-?>
