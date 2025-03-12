@@ -1,132 +1,130 @@
 <?php
 session_start();
-require '../includes/config.php'; // Connexion à la BD
+require '../includes/config.php'; // Connexion BD
 
 date_default_timezone_set('Europe/Paris');
-$currentDate = new DateTime();
-$weekOffset = isset($_GET['week']) ? (int)$_GET['week'] : 0;
-$displayDate = clone $currentDate;
-$displayDate->modify("+$weekOffset week");
 
-$lundi = clone $displayDate;
-$lundi->modify('-' . ($lundi->format('N') - 1) . ' days');
-$jours = [];
-for ($i = 0; $i < 5; $i++) {
-    $jours[] = clone $lundi;
-    $lundi->modify('+1 day');
-}
-$heures = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'];
+// Jours et horaires de travail
+$joursOuvres = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+$heures = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
 
-$search = $_GET['search'] ?? '';
-$query = "SELECT * FROM rendez_vous WHERE cin LIKE ? OR nom LIKE ? ORDER BY date_rdv ASC";
-$stmt = $conn->prepare($query);
-$searchTerm = "%$search%";
-$stmt->bind_param("ss", $searchTerm, $searchTerm);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $cin = trim($_POST['cin']);
-    $nom = trim($_POST['nom']);
-    $prenom = trim($_POST['prenom']);
-    $email = trim($_POST['email']);
-    $telephone = trim($_POST['telephone']);
-    $horaire = $_POST['horaire'];
-    
-    if (!empty($cin) && !empty($nom) && !empty($prenom) && !empty($email) && !empty($telephone) && !empty($horaire)) {
-        list($date, $heure) = explode('|', $horaire);
-        $code_unique = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
-        $stmt = $conn->prepare("INSERT INTO rendez_vous (code_unique, cin, nom, prenom, email, telephone, date_rdv, heure_rdv) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('ssssssss', $code_unique, $cin, $nom, $prenom, $email, $telephone, $date, $heure);
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success"]);
-        } else {
-            echo json_encode(["status" => "error"]);
-        }
-        exit;
+// Récupération des 2 prochaines semaines
+$dates = [];
+$today = new DateTime();
+while (count($dates) < 10) {
+    if ($today->format('N') < 6) {
+        $dates[$joursOuvres[count($dates) % 5] . " " . $today->format('d/m')] = $today->format('Y-m-d');
     }
+    $today->modify('+1 day');
 }
+
+// Récupération des rendez-vous existants
+$rdvs = $conn->query("SELECT * FROM rendez_vous ORDER BY id DESC");
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Rendez-vous</title>
+    <title>Prise de Rendez-vous</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="bg-gray-100 p-6">
-    <h1 class="text-2xl font-bold text-center mb-4">📅 Gestion des Rendez-vous</h1>
-    
-    <div class="mb-4 flex justify-between">
-        <input type="text" id="search" placeholder="Rechercher un RDV..." class="p-2 border rounded w-full mr-2">
-        <button onclick="openModal('rdvModal')" class="bg-green-600 text-white px-4 py-2 rounded">➕ Ajouter un RDV</button>
-    </div>
-    
-    <div class="bg-white mt-6 p-4 shadow rounded-lg">
-        <h3 class="text-lg font-bold">📋 Liste des Rendez-vous</h3>
-        <table class="w-full mt-4 border" id="rdvTable">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th>Code Unique</th>
-                    <th>CIN</th>
-                    <th>Nom</th>
-                    <th>Prénom</th>
-                    <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Date</th>
-                    <th>Heure</th>
-                    <th>Actions</th>
+    <input type="text" id="search" placeholder="Rechercher..." class="border p-2 w-full mb-4">
+
+    <table class="w-full border bg-white">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="p-2 border">CIN</th>
+                <th class="p-2 border">Nom</th>
+                <th class="p-2 border">Prénom</th>
+                <th class="p-2 border">Date</th>
+                <th class="p-2 border">Heure</th>
+                <th class="p-2 border">Action</th>
+            </tr>
+        </thead>
+        <tbody id="rdvTable">
+            <?php while ($rdv = $rdvs->fetch_assoc()): ?>
+                <tr>
+                    <td class="p-2 border"><?= $rdv['cin'] ?></td>
+                    <td class="p-2 border"><?= $rdv['nom'] ?></td>
+                    <td class="p-2 border"><?= $rdv['prenom'] ?></td>
+                    <td class="p-2 border"><?= $rdv['date_rdv'] ?></td>
+                    <td class="p-2 border"><?= $rdv['heure_rdv'] ?></td>
+                    <td class="p-2 border text-center">
+                        <button onclick="supprimerRdv(<?= $rdv['id'] ?>)" class="bg-red-500 text-white px-4 py-2 rounded">Supprimer</button>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php while ($rdv = $result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?= $rdv['code_unique'] ?></td>
-                        <td><?= $rdv['cin'] ?></td>
-                        <td><?= $rdv['nom'] ?></td>
-                        <td><?= $rdv['prenom'] ?></td>
-                        <td><?= $rdv['email'] ?></td>
-                        <td><?= $rdv['telephone'] ?></td>
-                        <td><?= $rdv['date_rdv'] ?></td>
-                        <td><?= $rdv['heure_rdv'] ?></td>
-                        <td>
-                            <button onclick="confirmDelete(<?= $rdv['id'] ?>)" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition duration-300">Supprimer</button>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+
+    <button onclick="openFormModal()" class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-600 mt-4">
+        Prendre un Rendez-vous
+    </button>
+
+    <div id="formModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-1/3">
+            <h2 class="text-xl font-bold">Informations Personnelles</h2>
+            <form id="rdvForm">
+                <input type="text" name="cin" placeholder="CIN" class="w-full border p-2 rounded mb-2">
+                <input type="text" name="nom" placeholder="Nom" class="w-full border p-2 rounded mb-2">
+                <input type="text" name="prenom" placeholder="Prénom" class="w-full border p-2 rounded mb-2">
+                <input type="email" name="email" placeholder="Email" class="w-full border p-2 rounded mb-2">
+                <input type="text" name="telephone" placeholder="Téléphone" class="w-full border p-2 rounded mb-2">
+                <button type="button" onclick="openHoraireModal()" class="bg-green-500 text-white px-4 py-2 rounded w-full">Suivant</button>
+            </form>
+        </div>
     </div>
-    
+
+    <div id="horaireModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-3/4">
+            <h2 class="text-xl font-bold">Sélectionnez un créneau</h2>
+            <table class="w-full border">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="p-2 border">Jour</th>
+                        <?php foreach ($heures as $heure): ?>
+                            <th class="p-2 border"><?= $heure ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($dates as $jour => $date): ?>
+                        <tr>
+                            <td class="p-2 border"><?= $jour ?></td>
+                            <?php foreach ($heures as $heure): ?>
+                                <td class="p-2 border text-center">
+                                    <input type="radio" name="horaire" value="<?= $date ?>|<?= $heure ?>">
+                                </td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <button onclick="validerRdv()" class="bg-green-500 text-white px-4 py-2 rounded w-full mt-4">Confirmer</button>
+        </div>
+    </div>
+
     <script>
-        function confirmDelete(id) {
-            Swal.fire({
-                title: "Êtes-vous sûr ?",
-                text: "Ce rendez-vous sera supprimé définitivement!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Oui, supprimer!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.post("delete.php", { id: id }, function(response) {
-                        location.reload();
-                    });
-                }
-            });
+        function openFormModal() { document.getElementById('formModal').classList.remove('hidden'); }
+        function openHoraireModal() { document.getElementById('horaireModal').classList.remove('hidden'); document.getElementById('formModal').classList.add('hidden'); }
+        function validerRdv() {
+            let formData = $("#rdvForm").serialize();
+            let selected = document.querySelector('input[name="horaire"]:checked');
+            if (!selected) { alert("Sélectionnez un créneau"); return; }
+            let [date, heure] = selected.value.split('|');
+            formData += `&date_rdv=${date}&heure_rdv=${heure}`;
+            $.post("valider_rdv.php", formData, function(response) {
+                alert("Rendez-vous enregistré"); window.location.reload();
+            }, "json");
         }
-        
-        $(document).ready(function () {
-            $('#search').on('keyup', function () {
-                var value = $(this).val().toLowerCase();
-                $('#rdvTable tbody tr').filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
+
+        $('#search').on('keyup', function() {
+            let value = $(this).val().toLowerCase();
+            $('#rdvTable tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
         });
     </script>
