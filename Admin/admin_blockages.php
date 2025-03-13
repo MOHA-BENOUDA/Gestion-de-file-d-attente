@@ -127,3 +127,4 @@ if ($result = $conn->query($sqlBlockedHours)) {
 </body>
 </html>
 <?php $conn->close(); ?>
+

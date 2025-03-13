@@ -11,14 +11,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['prenom'] = $_POST['prenom'];
         $_SESSION['email'] = $_POST['email'];
         $_SESSION['telephone'] = $_POST['telephone'];
-
-        // Générer un code unique et l'enregistrer dans la session
         $lettres = strtoupper(substr(str_shuffle("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 2));
         $chiffres = str_pad(mt_rand(0, 999999), 6, "0", STR_PAD_LEFT);
         $code_unique = $lettres . $chiffres;
-        $_SESSION['code_unique'] = $code_unique;  // ✅ Ajout du stockage dans la session
-
-        // Vérifier si l'utilisateur a déjà un rendez-vous
+        $_SESSION['code_unique'] = $code_unique;  
         $stmt_check = $conn->prepare("SELECT id FROM rendez_vous WHERE cin = ?");
         $stmt_check->bind_param("s", $_SESSION['cin']);
         $stmt_check->execute();
@@ -27,7 +23,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_check->num_rows > 0) {
             $erreur = "Cet utilisateur a déjà un rendez-vous.";
         } else {
-            // Rediriger vers la page de sélection de la date
             header("Location: date.php");
             exit();
         }
