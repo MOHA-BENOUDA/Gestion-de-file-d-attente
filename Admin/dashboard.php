@@ -1,3 +1,39 @@
+<?php
+// Connexion à la base de données
+include '../includes/config.php';
+
+// Récupération des statistiques des RDV
+$query_stats = "SELECT 
+    (SELECT COUNT(*) FROM rendez_vous) AS total_rdv,
+    (SELECT COUNT(*) FROM rendez_vous WHERE etat='En attente') AS en_attente,
+    (SELECT COUNT(*) FROM rendez_vous WHERE etat='Validé') AS valides,
+    (SELECT COUNT(*) FROM rendez_vous WHERE etat='Annulé') AS annules";
+
+$result_stats = $conn->query($query_stats);
+$stats = $result_stats->fetch_assoc();
+
+// Récupération des rendez-vous pour affichage
+$query_rdv = "SELECT nom, email, date_rdv, etat FROM rendez_vous ORDER BY date_rdv DESC";
+$result_rdv = $conn->query($query_rdv);
+
+// Récupération des RDV par jour pour Chart.js
+$query_chart = "SELECT DATE_FORMAT(date_rdv, '%W') AS jour, COUNT(*) AS total 
+                FROM rendez_vous GROUP BY jour ORDER BY FIELD(jour, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+$result_chart = $conn->query($query_chart);
+
+$jours = [];
+$rdv_counts = [];
+
+while ($row = $result_chart->fetch_assoc()) {
+    $jours[] = $row['jour'];
+    $rdv_counts[] = $row['total'];
+}
+
+// Convertir les données en format JSON pour JavaScript
+$jours_json = json_encode($jours);
+$rdv_counts_json = json_encode($rdv_counts);
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -8,23 +44,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100">
-    <!-- Sidebar -->
     <div class="flex h-screen">
+        <!-- Sidebar -->
         <aside class="w-64 bg-blue-900 text-white p-5">
             <h2 class="text-xl font-bold">Gestion RDV</h2>
             <nav class="mt-5">
                 <a href="#" class="block py-2 px-3 bg-blue-800 rounded mt-2">📊 Dashboard</a>
-<<<<<<< HEAD
                 <a href="rendez_vous.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
                 <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
                 <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
                 <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
-=======
-                <a href="gsrdv.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
-                <a href="file.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
-                <a href="notif.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
-                <a href="para.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
->>>>>>> d45a1387f8059278520d1831fa1fafd08d32334c
             </nav>
         </aside>
 
@@ -36,19 +65,19 @@
             <div class="grid grid-cols-4 gap-4 mt-6">
                 <div class="bg-white p-4 shadow rounded-lg">
                     <h3 class="text-gray-600">Total RDV</h3>
-                    <p class="text-2xl font-bold">120</p>
+                    <p class="text-2xl font-bold"><?= $stats['total_rdv'] ?></p>
                 </div>
                 <div class="bg-white p-4 shadow rounded-lg">
                     <h3 class="text-gray-600">En attente</h3>
-                    <p class="text-2xl font-bold">45</p>
+                    <p class="text-2xl font-bold"><?= $stats['en_attente'] ?></p>
                 </div>
                 <div class="bg-white p-4 shadow rounded-lg">
                     <h3 class="text-gray-600">Validés</h3>
-                    <p class="text-2xl font-bold">60</p>
+                    <p class="text-2xl font-bold"><?= $stats['valides'] ?></p>
                 </div>
                 <div class="bg-white p-4 shadow rounded-lg">
                     <h3 class="text-gray-600">Annulés</h3>
-                    <p class="text-2xl font-bold">15</p>
+                    <p class="text-2xl font-bold"><?= $stats['annules'] ?></p>
                 </div>
             </div>
 
@@ -70,12 +99,21 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <?php while ($rdv = $result_rdv->fetch_assoc()): ?>
                         <tr class="border-b">
-                            <td class="py-2 px-4">Othmane</td>
-                            <td class="py-2 px-4">othmane@gmail.com</td>
-                            <td class="py-2 px-4">06/03/2025</td>
-                            <td class="py-2 px-4 text-green-500">En attenteeeee</td>
+                            <td class="py-2 px-4"><?= htmlspecialchars($rdv['nom']) ?></td>
+                            <td class="py-2 px-4"><?= htmlspecialchars($rdv['email']) ?></td>
+                            <td class="py-2 px-4"><?= htmlspecialchars($rdv['date_rdv']) ?></td>
+                            <td class="py-2 px-4 font-bold 
+                                <?php 
+                                    if ($rdv['etat'] == 'Validé') echo 'text-green-500';
+                                    elseif ($rdv['etat'] == 'Annulé') echo 'text-red-500';
+                                    else echo 'text-yellow-500';
+                                ?>">
+                                <?= htmlspecialchars($rdv['etat']) ?>
+                            </td>
                         </tr>
+                        <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
@@ -88,10 +126,10 @@
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
+                labels: <?= $jours_json ?>,
                 datasets: [{
                     label: 'Nombre de RDV',
-                    data: [10, 20, 15, 30, 25],
+                    data: <?= $rdv_counts_json ?>,
                     backgroundColor: 'rgba(54, 162, 235, 0.6)'
                 }]
             },

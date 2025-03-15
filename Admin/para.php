@@ -7,6 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
+<div class="flex h-screen">
+<aside class="w-64 bg-blue-900 text-white p-5">
+            <h2 class="text-xl font-bold">Gestion RDV</h2>
+            <nav class="mt-5">
+                <a href="dashboard.php" class="block py-2 px-3 hover:bg-blue-800 rounded mt-2">📊 Dashboard</a>
+                <a href="rendez_vous.php" class="block py-2 px-3 bg-blue-800 rounded mt-2">📅 Rendez-vous</a>
+                <a href="file.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
+                <a href="notif.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
+                <a href="para.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
+            </nav>
+        </aside>
     <h1 class="text-2xl font-bold mb-4">⚙ Paramètres</h1>
     
     <div class="bg-white p-4 shadow rounded-lg">
@@ -23,6 +34,7 @@
             
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Enregistrer</button>
         </form>
+     </div>
     </div>
 </body>
 </html>
