@@ -49,11 +49,13 @@ $rdv_counts_json = json_encode($rdv_counts);
         <aside class="w-64 bg-blue-900 text-white p-5">
             <h2 class="text-xl font-bold">Gestion RDV</h2>
             <nav class="mt-5">
-                <a href="#" class="block py-2 px-3 bg-blue-800 rounded mt-2">📊 Dashboard</a>
-                <a href="rendez_vous.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
-                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
-                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
-                <a href="#" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
+                <a href="dashboard.php" class="block py-2 px-3 bg-blue-800 rounded mt-2">📊 Dashboard</a>
+                <a href="gsrdv.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
+                <a href="file.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
+                <a href="gestion_blocages.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🚫 Blockages des jours</a>
+                <a href="admin_blockages.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔴 Capacité Max</a>
+                <a href="notif.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
+                <a href="para.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
             </nav>
         </aside>
 
