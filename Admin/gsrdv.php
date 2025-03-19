@@ -82,28 +82,45 @@ if ($result = $conn->query($sqlBlockedHours)) {
     </style>
 </head>
 <body class="bg-gray-100 p-6">
-    <div class="container mb-8">
-        <h2 class="text-center text-2xl font-bold mb-4">Rendez-vous existants</h2>
-        <input type="text" id="search" placeholder="Rechercher..." class="border p-2 w-full mb-4">
-        <div class="container text-center mb-8">
-        <button onclick="openFormModal()" class="btn btn-primary btn-lg">
-            Prendre un Rendez-vous
-        </button>
+<div class="container mx-auto max-w-4xl mb-8">
+
+<h2 class="text-2xl font-semibold text-gray-800 text-center mb-4">Rendez-vous existants</h2>
+
+<!-- Barre de recherche et bouton -->
+<div class="flex items-center justify-center gap-4 mb-6">
+    <input type="text" id="search" placeholder="🔍 Rechercher..." 
+           class="border border-gray-300 rounded-full px-5 py-3 w-96 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+           <button onclick="openFormModal()" class="bg-blue-500 text-white font-medium px-6 py-3 rounded-full shadow-md hover:bg-blue-600 transition">
+    Prendre un Rendez-vous
+</button>
+
+</div>
+    <div class="flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-blue-900 min-h-screen p-6 text-white">
+        <?php include 'sidebar.php'; ?>
     </div>
 
-        <div class="table-responsive">
-            <table class="table table-bordered bg-white">
-                <thead class="bg-gray-200">
-                    <tr>
-                    <th class="p-2">Code Unique</th>
-                        <th class="p-2">CIN</th>
-                        <th class="p-2">Nom</th>
-                        <th class="p-2">Prénom</th>
-                        <th class="p-2">Date</th>
-                        <th class="p-2">Heure</th>
-                        <th class="p-2">Action</th>
-                    </tr>
-                </thead>
+    <!-- Contenu principal -->
+    <main class="flex-1 p-6">
+        <!-- Contenu spécifique de la page -->
+ 
+
+
+        <div class="overflow-hidden rounded-lg shadow-lg">
+        <table class="min-w-full bg-white border border-gray-200 mx-auto">
+
+            <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+    <tr class="text-center">
+        <th class="py-3 px-6 text-center">Code Unique</th>
+        <th class="py-3 px-6 text-center">CIN</th>
+        <th class="py-3 px-6 text-center">Nom</th>
+        <th class="py-3 px-6 text-center">Prénom</th>
+        <th class="py-3 px-6 text-center">Date</th>
+        <th class="py-3 px-6 text-center">Heure</th>
+        <th class="py-3 px-6 text-center">Action</th>
+    </tr>
+</thead>
                 <tbody id="rdvTable">
                     <?php while ($rdv = $rdvs->fetch_assoc()): ?>
                         <tr>
@@ -139,8 +156,8 @@ if ($result = $conn->query($sqlBlockedHours)) {
                 <input type="text" name="prenom" placeholder="Prénom" class="form-control mb-2">
                 <input type="email" name="email" placeholder="Email" class="form-control mb-2">
                 <input type="text" name="telephone" placeholder="Téléphone" class="form-control mb-2">
-                <button type="button" onclick="openHoraireModal()" class="btn btn-success w-100">Suivant</button>
-            </form>
+                <button type="button" onclick="openHoraireModal()" class="btn btn-primary w-100">Suivant</button>
+                </form>
         </div>
     </div>
 
@@ -191,7 +208,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
 
         <!-- Bouton pour valider -->
         <div class="mt-4 text-center">
-            <button onclick="validerRdv()" class="btn btn-success w-100">Confirmer</button>
+            <button onclick="validerRdv()" class="btn btn-primary w-100">Confirmer</button>
         </div>
     </div>
 </div>
@@ -217,6 +234,8 @@ if ($result = $conn->query($sqlBlockedHours)) {
             <button type="button" onclick="modifierRdv()" class="btn btn-success w-100">Enregistrer</button>
         </form>
     </div>
+</div>
+</main>
 </div>
 
 <script>

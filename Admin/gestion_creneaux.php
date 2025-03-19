@@ -2,15 +2,15 @@
 session_start();
 require '../includes/config.php'; // Connexion à la base de données
 
-// Vérifier la connexion à la base de données
+// Vérifier la connexion
 if (!$conn) {
     die("Erreur de connexion : " . mysqli_connect_error());
 }
 
-// Récupérer la capacité maximale par défaut
+// Récupérer la capacité maximale par défaut depuis la table configuration
 $sqlDefault = "SELECT valeur FROM configuration WHERE cle = 'capacite_max_defaut'";
 $resultDefault = $conn->query($sqlDefault);
-$capacite_defaut = ($resultDefault && $resultDefault->num_rows > 0) ? (int)$resultDefault->fetch_assoc()['valeur'] : 10;
+$capacite_defaut = ($resultDefault && $resultDefault->num_rows > 0) ? (int)$resultDefault->fetch_assoc()['valeur'] : 3;
 
 // Mise à jour de la capacité maximale par défaut
 if (isset($_POST['update_default_capacite'])) {
@@ -18,26 +18,39 @@ if (isset($_POST['update_default_capacite'])) {
     if ($new_capacite > 0) {
         $sqlUpdateDefault = "INSERT INTO configuration (cle, valeur) VALUES ('capacite_max_defaut', ?) ON DUPLICATE KEY UPDATE valeur = ?";
         $stmtUpdateDefault = $conn->prepare($sqlUpdateDefault);
-        $stmtUpdateDefault->bind_param("ii", $new_capacite, $new_capacite);
-        $stmtUpdateDefault->execute();
-        $_SESSION['message'] = "Capacité maximale par défaut mise à jour avec succès.";
-        header("Location: gestion_creneaux.php");
-        exit;
+        if ($stmtUpdateDefault) {
+            $stmtUpdateDefault->bind_param("ii", $new_capacite, $new_capacite);
+            $stmtUpdateDefault->execute();
+            
+            // Mettre à jour tous les créneaux existants avec la nouvelle capacité
+            $sqlUpdateAll = "UPDATE plages_horaires SET capacite_max = ?";
+            $stmtUpdateAll = $conn->prepare($sqlUpdateAll);
+            if ($stmtUpdateAll) {
+                $stmtUpdateAll->bind_param("i", $new_capacite);
+                $stmtUpdateAll->execute();
+            }
+
+            $_SESSION['message'] = "Capacité maximale mise à jour pour tous les jours et heures.";
+            header("Location: gestion_creneaux.php");
+            exit;
+        }
     }
 }
 
-// Traitement du formulaire pour modifier un jour spécifique
+// Mise à jour de la capacité pour un jour spécifique
 if (isset($_POST['update_day_capacite'])) {
     $date = $_POST['date'];
     $capacite = (int)$_POST['capacite'];
     if (!empty($date) && $capacite > 0) {
         $sqlUpdateDay = "UPDATE plages_horaires SET capacite_max = ? WHERE date_rdv = ?";
         $stmtUpdateDay = $conn->prepare($sqlUpdateDay);
-        $stmtUpdateDay->bind_param("is", $capacite, $date);
-        $stmtUpdateDay->execute();
-        $_SESSION['message'] = "Capacité mise à jour pour la date $date.";
-        header("Location: gestion_creneaux.php");
-        exit;
+        if ($stmtUpdateDay) {
+            $stmtUpdateDay->bind_param("is", $capacite, $date);
+            $stmtUpdateDay->execute();
+            $_SESSION['message'] = "Capacité mise à jour pour toutes les heures du jour $date.";
+            header("Location: gestion_creneaux.php");
+            exit;
+        }
     }
 }
 
@@ -46,6 +59,7 @@ $sql = "SELECT id, date_rdv, heure_rdv, capacite_max, nombre_reservations FROM p
 $result = $conn->query($sql);
 $creneaux = ($result) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -56,6 +70,8 @@ $creneaux = ($result) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 </head>
 <body class="bg-light p-4">
     <div class="container">
+   <a href="dashboard.php" class="btn btn-primary" > Revenir</a>
+
         <h2 class="text-center mb-4">Gérer les créneaux horaires</h2>
 
         <?php if (isset($_SESSION['message'])): ?>
@@ -98,7 +114,7 @@ $creneaux = ($result) ? $result->fetch_all(MYSQLI_ASSOC) : [];
                     <th>Heure</th>
                     <th>Capacité max</th>
                     <th>Réservations</th>
-                    <th>Actions</th>
+                    <th>État</th>
                 </tr>
             </thead>
             <tbody>
@@ -109,7 +125,7 @@ $creneaux = ($result) ? $result->fetch_all(MYSQLI_ASSOC) : [];
                         <td><?= htmlspecialchars($creneau['capacite_max']) ?></td>
                         <td><?= htmlspecialchars($creneau['nombre_reservations']) ?></td>
                         <td>
-                            <a href="delete_creneau.php?id=<?= $creneau['id'] ?>" class="btn btn-sm btn-danger">Supprimer</a>
+                            <?= ($creneau['nombre_reservations'] >= $creneau['capacite_max']) ? '<span class="badge bg-danger">PLEIN</span>' : '<span class="badge bg-success">Disponible</span>'; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

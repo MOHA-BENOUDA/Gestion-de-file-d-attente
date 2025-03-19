@@ -1,96 +1,44 @@
-/* Importation de Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: linear-gradient(to right, #00c6ff, #0072ff);
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
     text-align: center;
 }
 
 .container {
-    background: rgba(255, 255, 255, 0.2); /* Légère transparence pour l'effet moderne */
+    max-width: 400px;
+    margin: 50px auto;
     padding: 20px;
-    border-radius: 12px;  /* Coins arrondis pour un effet moderne */
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2); /* Ombre douce mais plus marquée */
-    backdrop-filter: blur(8px);  /* Effet de flou de fond pour moderniser */
-    max-width: 320px;
-    width: 100%;
-    margin: auto; /* Centre le conteneur */
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
-h1 {
-    font-size: 22px;  /* Taille du titre */
-    color: white;
-    margin-bottom: 20px;  /* Espacement sous le titre */
-}
-
-h2 {
-    font-size: 18px;  /* Taille du sous-titre */
+h1, h2 {
     color: #333;
-    margin-bottom: 10px;
 }
 
-label {
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 5px;
-    display: block;
-}
-
-input[type="text"] {
+input {
     width: 100%;
     padding: 10px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    font-size: 14px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-input[type="text"]:focus {
-    border-color: #0072ff;
-    box-shadow: 0px 0px 5px rgba(0, 114, 255, 0.5);
-}
-
-button {
-    background: #0072ff;
+.btn {
+    background: #007BFF;
     color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: bold;
     border: none;
-    width: 100%;
+    padding: 10px;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
+    border-radius: 5px;
 }
 
-button:hover {
-    background: white;
-    color: #0072ff;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-    transform: scale(1.05);
+.btn:hover {
+    background: #0056b3;
 }
 
-#userInfo {
-    display: none;
-    text-align: left;
-}
-
-#userInfo p {
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-#userInfo p strong {
-    color: #0072ff;
+.error-message {
+    color: red;
+    font-weight: bold;
 }

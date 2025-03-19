@@ -95,6 +95,7 @@ $conn->close();
 </head>
 <body>
     <div class="container mt-5">
+    <a href="index.php" class="btn btn-primary">Retour à l'accueil</a>
         <h2 class="text-center mb-4">Confirmation du Rendez-vous</h2>
         <div class="alert alert-info"><?= htmlspecialchars($message) ?></div>
         <div class="card">
@@ -111,7 +112,7 @@ $conn->close();
             </div>
         </div>
         <div class="text-center mt-4">
-            <a href="index.php" class="btn btn-secondary">Retour à l'accueil</a>
+        
         </div>
     </div>
 </body>

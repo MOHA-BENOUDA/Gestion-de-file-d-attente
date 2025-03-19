@@ -59,6 +59,21 @@ if ($result = $conn->query($sqlBlockedHours)) {
     }
     $result->free();
 }
+$capaciteRestante = [];
+$sqlCapacite = "SELECT date_rdv, heure_rdv, capacite_max, 
+                (SELECT COUNT(*) FROM rendez_vous WHERE rendez_vous.date_rdv = plages_horaires.date_rdv 
+                AND rendez_vous.heure_rdv = plages_horaires.heure_rdv) AS nombre_reservations 
+                FROM plages_horaires";
+
+if ($result = $conn->query($sqlCapacite)) {
+    while ($row = $result->fetch_assoc()) {
+        $date = $row['date_rdv'];
+        $heure = substr($row['heure_rdv'], 0, 5);
+        $capaciteRestante[$date][$heure] = $row['capacite_max'] - $row['nombre_reservations'];
+    }
+    $result->free();
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -84,6 +99,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
+                <a href="rdv.php" class="btn btn-primary" > Revenir</a>
                     <h5 class="modal-title">Sélectionner une date et une heure</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -135,6 +151,16 @@ if ($result = $conn->query($sqlBlockedHours)) {
                                 </tbody>
                             </table>
                         </div>
+                        <?php if ($isDayBlocked): ?>
+    <span class="text-danger">Jour Bloqué</span>
+<?php elseif ($isHourBlocked): ?>
+    <span class="text-danger">Bloqué</span>
+<?php elseif (isset($capaciteRestante[$dateStr][$heurePlage]) && $capaciteRestante[$dateStr][$heurePlage] <= 0): ?>
+    <span class="text-danger">Complet</span>
+<?php else: ?>
+    <input type="radio" name="date_heure" value="<?= htmlspecialchars($dateStr . ' ' . $heurePlage . ':00') ?>" required>
+<?php endif; ?>
+
                         <div class="text-center mt-3">
                             <button type="submit" class="btn btn-success w-100">Confirmer</button>
                         </div>

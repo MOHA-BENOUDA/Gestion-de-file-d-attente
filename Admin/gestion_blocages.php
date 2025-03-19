@@ -55,6 +55,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
 </head>
 <body class="bg-light p-4">
     <div class="container">
+    <a href="dashboard.php" class="btn btn-primary" > Revenir</a>
         <h1 class="text-center mb-4">Administration des Blocages</h1>
         
         <!-- Formulaire pour ajouter un jour bloqué -->
@@ -90,7 +91,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
                 <label class="form-label">Raison :</label>
                 <input type="text" name="raison" required class="form-control">
             </div>
-            <button type="submit" class="btn btn-success">Ajouter Heure Bloquée</button>
+            <button type="submit" class="btn btn-primary">Ajouter Heure Bloquée</button>
         </form>
         
         <!-- Affichage des blocages -->

@@ -53,7 +53,7 @@ $rdv_counts_json = json_encode($rdv_counts);
                 <a href="gsrdv.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
                 <a href="file.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
                 <a href="gestion_blocages.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🚫 Blockages des jours</a>
-                <a href="admin_blockages.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔴 Capacité Max</a>
+                <a href="gestion_creneaux.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔴 Capacité Max</a>
                 <a href="notif.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
                 <a href="para.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
             </nav>

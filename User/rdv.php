@@ -40,6 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="container mt-5">
+    <a href="index.php" class="btn btn-primary" > Revenir</a>
         <h2 class="text-center">Prendre un Rendez-vous</h2>
         
         <?php if (isset($erreur)): ?>
