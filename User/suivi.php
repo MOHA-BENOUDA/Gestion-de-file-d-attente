@@ -20,8 +20,10 @@ if (isset($_POST['code_unique'])) {
         $rdv = $result->fetch_assoc();
 
         // Compter les personnes devant l'utilisateur dans la file d'attente
-        $sqlQueue = "SELECT COUNT(*) AS position FROM rendez_vous 
-        WHERE date_rdv = ? AND heure_rdv < ? AND etat = 'en attente'";
+        $sqlQueue = "SELECT COUNT(*) AS position FROM file_attente 
+        JOIN rendez_vous ON file_attente.id_rdv = rendez_vous.id
+        WHERE rendez_vous.date_rdv = ? AND rendez_vous.heure_rdv < ? AND file_attente.etat = 'en attente'";
+        
 
         $stmtQueue = $conn->prepare($sqlQueue);
         $stmtQueue->bind_param("ss", $rdv['date_rdv'], $rdv['heure_rdv']);
@@ -30,16 +32,28 @@ if (isset($_POST['code_unique'])) {
         $queueData = $resultQueue->fetch_assoc();
 
         // Envoyer la réponse en JSON
-        echo json_encode([
-            "status" => "success",
-            "nom" => $rdv['nom'],
-            "prenom" => $rdv['prenom'],
-            "email" => $rdv['email'],
-            "telephone" => $rdv['telephone'],
-            "position" => $queueData['position'],
-            "prochain" => ($queueData['position'] == 0) ? "C'est votre tour !" : "Patientez encore un peu."
-
-        ]);
+        $sqlEtat = "SELECT etat FROM file_attente WHERE id_rdv = ?";
+        $stmtEtat = $conn->prepare($sqlEtat);
+        $stmtEtat->bind_param("i", $rdv['id']);
+        $stmtEtat->execute();
+        $resultEtat = $stmtEtat->get_result();
+        $etatRdv = ($resultEtat->num_rows > 0) ? $resultEtat->fetch_assoc()['etat'] : 'en attente';
+        
+        if ($etatRdv == 'appelé') {
+            echo json_encode(["status" => "success", "message" => "C'est votre tour !"]);
+            exit();
+        } else {
+            echo json_encode([
+                "status" => "success",
+                "nom" => $rdv['nom'],
+                "prenom" => $rdv['prenom'],
+                "email" => $rdv['email'],
+                "telephone" => $rdv['telephone'],
+                "position" => $queueData['position'],
+                "prochain" => "Patientez encore un peu."
+            ]);
+        }
+        
     } else {
         echo json_encode(["status" => "error", "message" => "Code invalide ou non valable pour aujourd'hui."]);
     }

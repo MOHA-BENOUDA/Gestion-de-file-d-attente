@@ -15,10 +15,11 @@ $resultSync = $conn->query($sqlSync);
 if ($resultSync) {
     while ($rowSync = $resultSync->fetch_assoc()) {
         $id_rdv = $rowSync["id"];
-        $sqlPos = "SELECT MAX(position) AS max_pos FROM file_attente";
+        $sqlPos = "SELECT COUNT(*) AS total FROM file_attente";
         $resultPos = $conn->query($sqlPos);
         $rowPos = $resultPos->fetch_assoc();
-        $position = ($rowPos["max_pos"] ?? 0) + 1;
+        $position = $rowPos["total"] + 1;
+        
         $sqlInsert = "INSERT INTO file_attente (id_rdv, position, etat) VALUES ($id_rdv, $position, 'en attente')";
         $conn->query($sqlInsert);
     }
@@ -41,7 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"])) {
           // Mettre à jour l'état dans la base de données
           $conn->query("UPDATE file_attente SET etat = '$etat' WHERE id = $id");
           // Récupérer l'ID de la personne en tête de file après la mise à jour
-$sqlFirst = "SELECT id FROM file_attente WHERE etat = 'en attente' ORDER BY position ASC LIMIT 1";
+          $sqlFirst = "SELECT id FROM file_attente ORDER BY position ASC LIMIT 1";
+
 $resultFirst = $conn->query($sqlFirst);
 
 if ($resultFirst && $resultFirst->num_rows > 0) {
@@ -52,8 +54,12 @@ if ($resultFirst && $resultFirst->num_rows > 0) {
     $conn->query("DELETE FROM file_attente WHERE id = $idFirst");
 
     // Mettre à jour les positions restantes
-    $conn->query("UPDATE file_attente SET position = position - 1 WHERE position > 1");
-}
+    if ($conn->query("UPDATE file_attente SET etat = '$etat' WHERE id = $id")) {
+      echo "Mise à jour réussie pour ID: $id";
+  } else {
+      echo "Erreur : " . $conn->error;
+  }
+  }
 
       }
   }
