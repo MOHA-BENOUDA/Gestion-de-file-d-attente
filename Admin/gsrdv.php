@@ -3,12 +3,12 @@ session_start();
 require '../includes/config.php'; // Doit initialiser la connexion $conn
 
 if (!isset($_SESSION['cin'])) {
-    header('Location: rdv.php'); 
+    header("Location: gsrdv.php"); 
     exit();
 }
 
 if (!isset($_SESSION['code_unique'])) {
-    header('Location: rdv.php');
+    header("Location: gsrdv.php");
     exit();
 }
 $code_unique = $_SESSION['code_unique'];
@@ -39,6 +39,21 @@ $heures = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00
 
 // Récupération des rendez-vous existants pour affichage
 $rdvs = $conn->query("SELECT * FROM rendez_vous ORDER BY id DESC");
+// Récupérer le nombre max de rendez-vous par créneau
+$max_rdv_par_creneau = 3; // Ajustez selon votre besoin
+
+// Stocker les créneaux complets
+$creneaux_complets = [];
+
+$sqlComplet = "SELECT date_rdv, heure_rdv, COUNT(*) as total FROM rendez_vous GROUP BY date_rdv, heure_rdv";
+$resultComplet = $conn->query($sqlComplet);
+
+while ($row = $resultComplet->fetch_assoc()) {
+    if ($row['total'] >= $max_rdv_par_creneau) {
+        $creneaux_complets[$row['date_rdv']][$row['heure_rdv']] = true;
+    }
+}
+
 
 // Récupération des blocages
 
@@ -63,6 +78,19 @@ if ($result = $conn->query($sqlBlockedHours)) {
     }
     $result->free();
 }
+// Récupération de la capacité des créneaux
+$resultCapacite = $conn->query("SELECT capacite_max FROM capacite_globale LIMIT 1");
+$capaciteGlobale = ($resultCapacite && $resultCapacite->num_rows > 0) ? $resultCapacite->fetch_assoc()['capacite_max'] : 5;
+
+$capaciteRestante = [];
+$sqlCapacite = "SELECT date_rdv, heure_rdv, COUNT(*) AS nombre_reservations FROM rendez_vous GROUP BY date_rdv, heure_rdv";
+$result = $conn->query($sqlCapacite);
+while ($row = $result->fetch_assoc()) {
+    $date = $row['date_rdv'];
+    $heure = substr($row['heure_rdv'], 0, 5);
+    $capaciteRestante[$date][$heure] = $capaciteGlobale - $row['nombre_reservations'];
+}
+$result->free();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -110,7 +138,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
         <div class="overflow-hidden rounded-lg shadow-lg">
         <table class="min-w-full bg-white border border-gray-200 mx-auto">
 
-            <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+        <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
     <tr class="text-center">
         <th class="py-3 px-6 text-center">Code Unique</th>
         <th class="py-3 px-6 text-center">CIN</th>
@@ -118,9 +146,11 @@ if ($result = $conn->query($sqlBlockedHours)) {
         <th class="py-3 px-6 text-center">Prénom</th>
         <th class="py-3 px-6 text-center">Date</th>
         <th class="py-3 px-6 text-center">Heure</th>
+        <th class="py-3 px-6 text-center">Statut</th> <!-- Nouvelle colonne -->
         <th class="py-3 px-6 text-center">Action</th>
     </tr>
 </thead>
+
                 <tbody id="rdvTable">
                     <?php while ($rdv = $rdvs->fetch_assoc()): ?>
                         <tr>
@@ -135,6 +165,13 @@ if ($result = $conn->query($sqlBlockedHours)) {
                             </td>
                             <td class="p-2 text-center">
     <button onclick="ouvrirModifierModal(<?= $rdv['id'] ?>, '<?= $rdv['date_rdv'] ?>', '<?= $rdv['heure_rdv'] ?>')" class="btn btn-warning btn-sm">Modifier</button>
+</td>
+<td class="p-2 text-center">
+    <?php if (isset($creneaux_complets[$rdv['date_rdv']][$rdv['heure_rdv']])): ?>
+        <span class="px-3 py-1 rounded-lg bg-yellow-500 text-white font-bold">Complet</span>
+    <?php else: ?>
+        <span class="px-3 py-1 rounded-lg bg-green-500 text-white font-bold">Disponible</span>
+    <?php endif; ?>
 </td>
 
                         </tr>
@@ -191,14 +228,19 @@ if ($result = $conn->query($sqlBlockedHours)) {
                                 $isHourBlocked = (isset($blockedHours[$date]) && in_array($heure, $blockedHours[$date]));
                             ?>
                                 <td class="<?= ($isDayBlocked || $isHourBlocked) ? 'blocked' : '' ?> text-center">
-                                    <?php if ($isDayBlocked): ?>
-                                        <span class="text-danger">Jour Bloqué</span>
-                                    <?php elseif ($isHourBlocked): ?>
-                                        <span class="text-danger">Bloqué</span>
-                                    <?php else: ?>
-                                        <input type="radio" name="horaire" value="<?= htmlspecialchars($date . '|' . $heure) ?>" required>
-                                    <?php endif; ?>
-                                </td>
+    <?php if ($isDayBlocked): ?>
+        <span class="text-danger">Jour Bloqué</span>
+    <?php elseif ($isHourBlocked): ?>
+        <span class="tgit add .
+ext-danger">Bloqué</span>
+    <?php elseif (isset($capaciteRestante[$date][$heure]) && $capaciteRestante[$date][$heure] <= 0): ?>
+        <span class="text-info">Complet</span>
+    <?php else: ?>
+        <input type="radio" name="horaire" value="<?= htmlspecialchars($date . '|' . $heure) ?>" required>
+    <?php endif; ?>
+</td>
+
+
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>

@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $sql = "INSERT INTO heures_bloquees (date_bloquee, heure_bloquee, raison) VALUES ('$date_bloquee', '$heure_bloquee', '$raison')";
         $conn->query($sql);
     }
-    header("Location: admin_blockages.php");
+    header("Location: gestion_blocages.php");
     exit();
 }
 
@@ -60,7 +60,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
         
         <!-- Formulaire pour ajouter un jour bloqué -->
         <h2 class="mb-3">Ajouter un Jour Bloqué</h2>
-        <form method="POST" action="admin_blockages.php" class="mb-4">
+        <form method="POST" action="gestion_blocages.php" class="mb-4">
             <input type="hidden" name="action" value="ajouter_jour">
             <div class="mb-3">
                 <label class="form-label">Date bloquée :</label>
@@ -77,7 +77,7 @@ if ($result = $conn->query($sqlBlockedHours)) {
         
         <!-- Formulaire pour ajouter une heure bloquée -->
         <h2 class="text-center mb-4">Ajouter une Heure Bloquée</h2>
-        <form method="POST" action="admin_blockages.php">
+        <form method="POST" action="gestion_blocages.php">
             <input type="hidden" name="action" value="ajouter_heure">
             <div class="mb-3">
                 <label class="form-label">Date :</label>

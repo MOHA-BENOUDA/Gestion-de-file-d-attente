@@ -1,136 +1,51 @@
 <?php
 session_start();
-require '../includes/config.php'; // Connexion à la base de données
+require '../includes/config.php';
 
-// Vérifier la connexion
-if (!$conn) {
-    die("Erreur de connexion : " . mysqli_connect_error());
+// Récupérer la capacité globale
+$capaciteGlobale = 5;
+$resultCapacite = $conn->query("SELECT capacite_max FROM capacite_globale LIMIT 1");
+if ($resultCapacite && $resultCapacite->num_rows > 0) {
+    $row = $resultCapacite->fetch_assoc();
+    $capaciteGlobale = $row['capacite_max'];
 }
 
-// Récupérer la capacité maximale par défaut depuis la table configuration
-$sqlDefault = "SELECT valeur FROM configuration WHERE cle = 'capacite_max_defaut'";
-$resultDefault = $conn->query($sqlDefault);
-$capacite_defaut = ($resultDefault && $resultDefault->num_rows > 0) ? (int)$resultDefault->fetch_assoc()['valeur'] : 3;
-
-// Mise à jour de la capacité maximale par défaut
-if (isset($_POST['update_default_capacite'])) {
-    $new_capacite = (int)$_POST['default_capacite'];
-    if ($new_capacite > 0) {
-        $sqlUpdateDefault = "INSERT INTO configuration (cle, valeur) VALUES ('capacite_max_defaut', ?) ON DUPLICATE KEY UPDATE valeur = ?";
-        $stmtUpdateDefault = $conn->prepare($sqlUpdateDefault);
-        if ($stmtUpdateDefault) {
-            $stmtUpdateDefault->bind_param("ii", $new_capacite, $new_capacite);
-            $stmtUpdateDefault->execute();
-            
-            // Mettre à jour tous les créneaux existants avec la nouvelle capacité
-            $sqlUpdateAll = "UPDATE plages_horaires SET capacite_max = ?";
-            $stmtUpdateAll = $conn->prepare($sqlUpdateAll);
-            if ($stmtUpdateAll) {
-                $stmtUpdateAll->bind_param("i", $new_capacite);
-                $stmtUpdateAll->execute();
-            }
-
-            $_SESSION['message'] = "Capacité maximale mise à jour pour tous les jours et heures.";
-            header("Location: gestion_creneaux.php");
-            exit;
-        }
-    }
+// Mise à jour de la capacité globale
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modifier_capacite_globale'])) {
+    $nouvelleCapacite = intval($_POST['capacite_max']);
+    $conn->query("UPDATE capacite_globale SET capacite_max = $nouvelleCapacite");
+    header("Location: gestion_creneaux.php");
+    exit();
 }
 
-// Mise à jour de la capacité pour un jour spécifique
-if (isset($_POST['update_day_capacite'])) {
-    $date = $_POST['date'];
-    $capacite = (int)$_POST['capacite'];
-    if (!empty($date) && $capacite > 0) {
-        $sqlUpdateDay = "UPDATE plages_horaires SET capacite_max = ? WHERE date_rdv = ?";
-        $stmtUpdateDay = $conn->prepare($sqlUpdateDay);
-        if ($stmtUpdateDay) {
-            $stmtUpdateDay->bind_param("is", $capacite, $date);
-            $stmtUpdateDay->execute();
-            $_SESSION['message'] = "Capacité mise à jour pour toutes les heures du jour $date.";
-            header("Location: gestion_creneaux.php");
-            exit;
-        }
-    }
-}
-
-// Récupérer les créneaux existants
-$sql = "SELECT id, date_rdv, heure_rdv, capacite_max, nombre_reservations FROM plages_horaires ORDER BY date_rdv, heure_rdv";
-$result = $conn->query($sql);
-$creneaux = ($result) ? $result->fetch_all(MYSQLI_ASSOC) : [];
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des créneaux</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Gestion des Capacités</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light p-4">
-    <div class="container">
-   <a href="dashboard.php" class="btn btn-primary" > Revenir</a>
+<div class="container">
+    <a href="dashboard.php" class="btn btn-primary mb-3">⬅ Revenir</a>
+    <h1 class="text-center mb-4">⚙ Gestion des Capacités</h1>
 
-        <h2 class="text-center mb-4">Gérer les créneaux horaires</h2>
-
-        <?php if (isset($_SESSION['message'])): ?>
-            <div class="alert alert-success">
-                <?= $_SESSION['message']; unset($_SESSION['message']); ?>
-            </div>
-        <?php endif; ?>
-
-        <h3>Capacité maximale par défaut</h3>
-        <form method="POST" class="mb-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="default_capacite" class="form-label">Capacité par défaut :</label>
-                    <input type="number" name="default_capacite" id="default_capacite" class="form-control" value="<?= $capacite_defaut ?>" min="1" required>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">🔧 Capacité Globale</h4>
+            <p>Capacité actuelle : <strong><?= $capaciteGlobale ?> personnes par heure</strong></p>
+            <form method="POST">
+                <input type="hidden" name="modifier_capacite_globale">
+                <div class="mb-3">
+                    <label class="form-label">Nouvelle Capacité :</label>
+                    <input type="number" name="capacite_max" class="form-control" required min="1" value="<?= $capaciteGlobale ?>">
                 </div>
-            </div>
-            <button type="submit" name="update_default_capacite" class="btn btn-primary mt-3 w-100">Mettre à jour</button>
-        </form>
-
-        <h3>Modifier la capacité pour un jour spécifique</h3>
-        <form method="POST" class="mb-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="date" class="form-label">Date :</label>
-                    <input type="date" name="date" id="date" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="capacite" class="form-label">Nouvelle capacité :</label>
-                    <input type="number" name="capacite" id="capacite" class="form-control" min="1" required>
-                </div>
-            </div>
-            <button type="submit" name="update_day_capacite" class="btn btn-warning mt-3 w-100">Modifier</button>
-        </form>
-
-        <h3>Créneaux existants</h3>
-        <table class="table table-bordered text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>Date</th>
-                    <th>Heure</th>
-                    <th>Capacité max</th>
-                    <th>Réservations</th>
-                    <th>État</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($creneaux as $creneau): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($creneau['date_rdv']) ?></td>
-                        <td><?= htmlspecialchars($creneau['heure_rdv']) ?></td>
-                        <td><?= htmlspecialchars($creneau['capacite_max']) ?></td>
-                        <td><?= htmlspecialchars($creneau['nombre_reservations']) ?></td>
-                        <td>
-                            <?= ($creneau['nombre_reservations'] >= $creneau['capacite_max']) ? '<span class="badge bg-danger">PLEIN</span>' : '<span class="badge bg-success">Disponible</span>'; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                <button type="submit" class="btn btn-primary">Modifier</button>
+            </form>
+        </div>
     </div>
+</div>
 </body>
 </html>
+<?php $conn->close(); ?>
