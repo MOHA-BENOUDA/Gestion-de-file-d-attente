@@ -2,140 +2,125 @@
 // Connexion à la base de données
 include '../includes/config.php';
 
-// Récupération des statistiques des RDV
+// Récupération des statistiques globales
 $query_stats = "SELECT 
     (SELECT COUNT(*) FROM rendez_vous) AS total_rdv,
     (SELECT COUNT(*) FROM rendez_vous WHERE etat='En attente') AS en_attente,
     (SELECT COUNT(*) FROM rendez_vous WHERE etat='Validé') AS valides,
     (SELECT COUNT(*) FROM rendez_vous WHERE etat='Annulé') AS annules";
-
 $result_stats = $conn->query($query_stats);
 $stats = $result_stats->fetch_assoc();
 
-// Récupération des rendez-vous pour affichage
-$query_rdv = "SELECT nom, email, date_rdv, etat FROM rendez_vous ORDER BY date_rdv DESC";
-$result_rdv = $conn->query($query_rdv);
+// Capacité maximale
+$globale_result = $conn->query("SELECT capacite_max FROM capacite_globale LIMIT 1");
+$globale = $globale_result->fetch_assoc();
+$capacite_max = $globale['capacite_max'];
 
-// Récupération des RDV par jour pour Chart.js
-$query_chart = "SELECT DATE_FORMAT(date_rdv, '%W') AS jour, COUNT(*) AS total 
-                FROM rendez_vous GROUP BY jour ORDER BY FIELD(jour, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+// File d'attente
+$result_file = $conn->query("SELECT COUNT(*) AS en_file FROM file_attente WHERE etat='En attente'");
+$file_attente = $result_file->fetch_assoc()['en_file'];
+
+// Jours et heures bloqués
+$query_blocage = "SELECT 
+    (SELECT COUNT(*) FROM jours_bloques) AS jours_bloques, 
+    (SELECT COUNT(*) FROM heures_bloquees) AS heures_bloquees";
+$result_blocage = $conn->query($query_blocage);
+$blocage = $result_blocage->fetch_assoc();
+
+// Données pour le graphique
+$query_chart = "SELECT DATE_FORMAT(date_rdv, '%Y-%m-%d') AS jour, COUNT(*) AS total 
+                FROM rendez_vous GROUP BY jour ORDER BY jour ASC";
 $result_chart = $conn->query($query_chart);
-
 $jours = [];
 $rdv_counts = [];
-
 while ($row = $result_chart->fetch_assoc()) {
     $jours[] = $row['jour'];
     $rdv_counts[] = $row['total'];
 }
-
-// Convertir les données en format JSON pour JavaScript
 $jours_json = json_encode($jours);
 $rdv_counts_json = json_encode($rdv_counts);
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gestion des RDV</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-blue-900 text-white p-5">
-            <h2 class="text-xl font-bold">Gestion RDV</h2>
-            <nav class="mt-5">
-                <a href="dashboard.php" class="block py-2 px-3 bg-blue-800 rounded mt-2">📊 Dashboard</a>
-                <a href="gsrdv.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">📅 Rendez-vous</a>
-                <a href="file.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⏳ File d’attente</a>
-                <a href="gestion_blocages.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🚫 Blockages des jours</a>
-                <a href="gestion_creneaux.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔴 Capacité Max</a>
-                <a href="notif.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">🔔 Notifications</a>
-                <a href="para.php" class="block py-2 px-3 hover:bg-blue-700 rounded mt-2">⚙ Paramètres</a>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 bg-dark text-white p-3 min-vh-100">
+                <h4 class="text-center">Gestion RDV</h4>
+                <ul class="nav flex-column mt-4">
+    <li class="nav-item">
+        <a href="dashboard.php" class="nav-link text-white <?= $current_page == 'dashboard.php' ? 'bg-blue-800' : 'hover:bg-blue-700' ?>">📊 Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a href="gsrdv.php" class="nav-link text-white <?= $current_page == 'gsrdv.php' ? 'bg-blue-800' : 'hover:bg-blue-700' ?>">📅 Rendez-vous</a>
+    </li>
+    <li class="nav-item">
+        <a href="file.php" class="nav-link text-white <?= $current_page == 'file.php' ? 'bg-blue-800' : 'hover:bg-blue-700' ?>">⏳ File d’attente</a>
+    </li>
+    <li class="nav-item">
+        <a href="gestion_blocages.php" class="nav-link text-white <?= $current_page == 'gestion_blocages.php' ? 'bg-blue-800' : 'hover:bg-blue-700' ?>">🚫 Blocages des jours</a>
+    </li>
+    <li class="nav-item">
+        <a href="gestion_creneaux.php" class="nav-link text-white <?= $current_page == 'gestion_creneaux.php' ? 'bg-blue-800' : 'hover:bg-blue-700' ?>">🔴 Capacité Max</a>
+    </li>
+  
+    <li class="nav-item">
+        <a href="para.php" class="nav-link text-white <?= $current_page == 'para.php' ? 'bg-blue-800' : 'hover:bg-blue-700' ?>">⚙ Paramètres</a>
+    </li>
+</ul>
+
             </nav>
-        </aside>
-
-        <!-- Contenu principal -->
-        <main class="flex-1 p-6">
-            <h1 class="text-2xl font-bold">📊 Tableau de bord</h1>
-            
-            <!-- Statistiques -->
-            <div class="grid grid-cols-4 gap-4 mt-6">
-                <div class="bg-white p-4 shadow rounded-lg">
-                    <h3 class="text-gray-600">Total RDV</h3>
-                    <p class="text-2xl font-bold"><?= $stats['total_rdv'] ?></p>
+            <main class="col-md-10 p-4">
+                <h2>📊 Tableau de bord</h2>
+                <div class="row">
+                    <div class="col-md-3"><div class="card bg-primary text-white p-3"><h5>Total RDV</h5><p class="display-6"><?= $stats['total_rdv'] ?></p></div></div>
+                    <div class="col-md-3"><div class="card bg-warning text-white p-3"><h5>En attente</h5><p class="display-6"><?= $stats['en_attente'] ?></p></div></div>
+                    <div class="col-md-3"><div class="card bg-success text-white p-3"><h5>Validés</h5><p class="display-6"><?= $stats['valides'] ?></p></div></div>
+                    <div class="col-md-3"><div class="card bg-danger text-white p-3"><h5>Annulés</h5><p class="display-6"><?= $stats['annules'] ?></p></div></div>
                 </div>
-                <div class="bg-white p-4 shadow rounded-lg">
-                    <h3 class="text-gray-600">En attente</h3>
-                    <p class="text-2xl font-bold"><?= $stats['en_attente'] ?></p>
+                <div class="row mt-4">
+                    <div class="col-md-4"><div class="card bg-info text-white p-3"><h5>🕒 File d'attente</h5><p class="display-6"><?= $file_attente ?></p></div></div>
+                    <div class="col-md-4"><div class="card bg-secondary text-white p-3"><h5>🚀 Capacité max</h5><p class="display-6"><?= $capacite_max ?></p></div></div>
+                    <div class="col-md-4"><div class="card bg-dark text-white p-3"><h5>🚫 Jours bloqués</h5><p class="display-6"><?= $blocage['jours_bloques'] ?></p></div></div>
                 </div>
-                <div class="bg-white p-4 shadow rounded-lg">
-                    <h3 class="text-gray-600">Validés</h3>
-                    <p class="text-2xl font-bold"><?= $stats['valides'] ?></p>
+                <div class="card p-4 mt-4">
+                    <h5>📈 Évolution des RDV</h5>
+                    <canvas id="chartRDV"></canvas>
                 </div>
-                <div class="bg-white p-4 shadow rounded-lg">
-                    <h3 class="text-gray-600">Annulés</h3>
-                    <p class="text-2xl font-bold"><?= $stats['annules'] ?></p>
-                </div>
-            </div>
-
-            <!-- Graphique des RDV -->
-            <div class="bg-white mt-6 p-4 shadow rounded-lg">
-                <canvas id="chartRDV"></canvas>
-            </div>
-
-            <!-- Tableau des rendez-vous -->
-            <div class="bg-white mt-6 p-4 shadow rounded-lg">
-                <h3 class="text-lg font-bold">📅 Liste des Rendez-vous</h3>
-                <table class="w-full mt-4">
-                    <thead>
-                        <tr class="bg-gray-200">
-                            <th class="py-2 px-4">Nom</th>
-                            <th class="py-2 px-4">Email</th>
-                            <th class="py-2 px-4">Date</th>
-                            <th class="py-2 px-4">État</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($rdv = $result_rdv->fetch_assoc()): ?>
-                        <tr class="border-b">
-                            <td class="py-2 px-4"><?= htmlspecialchars($rdv['nom']) ?></td>
-                            <td class="py-2 px-4"><?= htmlspecialchars($rdv['email']) ?></td>
-                            <td class="py-2 px-4"><?= htmlspecialchars($rdv['date_rdv']) ?></td>
-                            <td class="py-2 px-4 font-bold 
-                                <?php 
-                                    if ($rdv['etat'] == 'Validé') echo 'text-green-500';
-                                    elseif ($rdv['etat'] == 'Annulé') echo 'text-red-500';
-                                    else echo 'text-yellow-500';
-                                ?>">
-                                <?= htmlspecialchars($rdv['etat']) ?>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
-
     <script>
-        // Graphique des RDV avec Chart.js
         const ctx = document.getElementById('chartRDV').getContext('2d');
         new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: <?= $jours_json ?>,
                 datasets: [{
                     label: 'Nombre de RDV',
                     data: <?= $rdv_counts_json ?>,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 2,
+                    fill: true
                 }]
             },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { title: { display: true, text: 'Nombre de RDV' }, beginAtZero: true }
+                }
+            }
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

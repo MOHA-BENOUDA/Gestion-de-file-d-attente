@@ -107,9 +107,11 @@ $result = $conn->query($sql);
   <title>File d'Attente</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-6 ml-32">
+<body class="bg-gray-100 p-6 ml-64">
 
-<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg ml-32">
+
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+
 
   <h1 class="text-2xl font-bold text-center mb-6">📋 Gestion de la File d'Attente</h1>
   

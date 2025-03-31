@@ -3,12 +3,12 @@ session_start();
 require '../includes/config.php'; // Doit initialiser la connexion $conn
 
 if (!isset($_SESSION['cin'])) {
-    header("Location:gsrdv.php"); 
+    header("Location:rdv.php"); 
     exit();
 }
 
 if (!isset($_SESSION['code_unique'])) {
-    header("Location: gsrdv.php");
+    header("Location: rdv.php");
     exit();
 }
 $code_unique = $_SESSION['code_unique'];

@@ -4,75 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accueil - Gestion de file d'attente</title>
-<style> 
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: linear-gradient(to right, #00c6ff, #0072ff);
-    text-align: center;
-}
-
-.container {
-    background: rgba(255, 255, 255, 0.3);
-    padding: 20px;
-    border-radius: 10px;
-    backdrop-filter: blur(8px);
-    max-width: 350px;
-    width: 100%;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-h2 {
-    font-size: 18px;
-    color: white;
-    margin-bottom: 15px;
-}
-
-.button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.btn-success {
-    background: #0072ff;
-    border: none;
-    padding: 10px;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 8px;
-    color: white;
-    transition: 0.3s ease-in-out;
-    cursor: pointer;
-}
-
-.btn-success:hover {
-    background: white;
-    color: #0072ff;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
-    transform: scale(1.05);
-}
-
-</style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
-<body>
-    <div class="container">
-        <h2>Bienvenue sur la gestion de file d'attente</h2>
-        <div class="button-group">
-            <a href="rdv.php"><button class="btn-success">Prendre un rendez-vous</button></a>
-            <a href="suivi.php"><button class="btn-success">Suivre mon tour</button></a>
+<body class="flex items-center justify-center h-screen bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+    <div class="bg-white bg-opacity-20 p-8 rounded-2xl shadow-lg backdrop-blur-md text-center max-w-sm w-full">
+        <h2 class="text-xl font-semibold mb-6">Bienvenue sur la gestion de file d'attente</h2>
+        <div class="space-y-4">
+            <a href="rdv.php" class="block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-105">
+                📅 Prendre un rendez-vous
+            </a>
+            <a href="suivi.php" class="block bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-105">
+                👀 Suivre mon tour
+            </a>
         </div>
     </div>
 </body>

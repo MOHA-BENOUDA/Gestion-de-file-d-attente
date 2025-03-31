@@ -53,78 +53,56 @@ if ($result = $conn->query($sqlBlockedHours)) {
     <title>Administration des Blocages</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light p-4">
-    <div class="container">
-    <a href="dashboard.php" class="btn btn-primary" > Revenir</a>
-        <h1 class="text-center mb-4">Administration des Blocages</h1>
-        
-        <!-- Formulaire pour ajouter un jour bloqué -->
-        <h2 class="mb-3">Ajouter un Jour Bloqué</h2>
-        <form method="POST" action="gestion_blocages.php" class="mb-4">
-            <input type="hidden" name="action" value="ajouter_jour">
-            <div class="mb-3">
-                <label class="form-label">Date bloquée :</label>
-                <input type="date" name="date_bloquee" required class="form-control">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Raison :</label>
-                <input type="text" name="raison" required class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">Ajouter Jour Bloqué</button>
-        </form>
-        
-        <hr class="my-4">
-        
-        <!-- Formulaire pour ajouter une heure bloquée -->
-        <h2 class="text-center mb-4">Ajouter une Heure Bloquée</h2>
-        <form method="POST" action="gestion_blocages.php">
-            <input type="hidden" name="action" value="ajouter_heure">
-            <div class="mb-3">
-                <label class="form-label">Date :</label>
-                <input type="date" name="date_bloquee" required class="form-control">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Heure bloquée :</label>
-                <input type="time" name="heure_bloquee" required class="form-control">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Raison :</label>
-                <input type="text" name="raison" required class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">Ajouter Heure Bloquée</button>
-        </form>
-        
-        <!-- Affichage des blocages -->
-        <hr class="my-4">
-        <h2 class="text-center mb-3">Liste des Jours Bloqués</h2>
-        <ul class="list-group mb-4">
-            <?php
-            $sqlJours = "SELECT * FROM jours_bloques ORDER BY date_bloquee ASC";
-            $resultJours = $conn->query($sqlJours);
-            if ($resultJours && $resultJours->num_rows > 0) {
-                while ($row = $resultJours->fetch_assoc()) {
-                    echo "<li class='list-group-item'>" . htmlspecialchars($row['date_bloquee']) . " - " . htmlspecialchars($row['raison']) . "</li>";
-                }
-            } else {
-                echo "<li class='list-group-item'>Aucun jour bloqué.</li>";
-            }
-            ?>
-        </ul>
-        <h2 class="text-center mb-4">Liste des Heures Bloquées</h2>
-        <ul class="list-group">
-            <?php
-            $sqlHeures = "SELECT * FROM heures_bloquees ORDER BY date_bloquee ASC, heure_bloquee ASC";
-            $resultHeures = $conn->query($sqlHeures);
-            if ($resultHeures && $resultHeures->num_rows > 0) {
-                while ($row = $resultHeures->fetch_assoc()) {
-                    echo "<li class='list-group-item'>" . htmlspecialchars($row['date_bloquee']) . " à " . htmlspecialchars($row['heure_bloquee']) . " - " . htmlspecialchars($row['raison']) . "</li>";
-                }
-            } else {
-                echo "<li class='list-group-item'>Aucune heure bloquée.</li>";
-            }
-            ?>
-        </ul>
+<body class="bg-light">
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-dark text-white p-3" style="width: 250px; height: 100vh; position: fixed;">
+        <?php include 'sidebar.php'; ?>
     </div>
+
+    <!-- Contenu principal -->
+    <div class="flex-grow-1 p-4" style="margin-left: 260px;">
+        <div class="container bg-white p-5 rounded shadow">
+            <h1 class="text-center mb-4">Administration des Blocages</h1>
+
+            <!-- Formulaire pour ajouter un jour bloqué -->
+            <h2 class="mb-3">Ajouter un Jour Bloqué</h2>
+            <form method="POST" action="gestion_blocages.php" class="mb-4">
+                <input type="hidden" name="action" value="ajouter_jour">
+                <div class="mb-3">
+                    <label class="form-label">Date bloquée :</label>
+                    <input type="date" name="date_bloquee" required class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Raison :</label>
+                    <input type="text" name="raison" required class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Ajouter Jour Bloqué</button>
+            </form>
+
+            <hr class="my-4">
+
+            <!-- Affichage des blocages -->
+            <h2 class="text-center mb-3">Liste des Jours Bloqués</h2>
+            <ul class="list-group mb-4">
+                <?php
+                $sqlJours = "SELECT * FROM jours_bloques ORDER BY date_bloquee ASC";
+                $resultJours = $conn->query($sqlJours);
+                if ($resultJours && $resultJours->num_rows > 0) {
+                    while ($row = $resultJours->fetch_assoc()) {
+                        echo "<li class='list-group-item'>" . htmlspecialchars($row['date_bloquee']) . " - " . htmlspecialchars($row['raison']) . "</li>";
+                    }
+                } else {
+                    echo "<li class='list-group-item'>Aucun jour bloqué.</li>";
+                }
+                ?>
+            </ul>
+        </div>
+    </div>
+</div>
+
 </body>
+
 </html>
 <?php $conn->close(); ?>

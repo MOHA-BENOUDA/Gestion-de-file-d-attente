@@ -1,5 +1,5 @@
 <?php
-include '../includes/config.php'; // Assurez-vous d'avoir une connexion à la base de données
+include '../includes/config.php'; 
 
 // Ajouter un administrateur
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajouter_admin'])) {
@@ -34,11 +34,12 @@ $result = $conn->query("SELECT * FROM administrateurs");
     <title>Gestion des Administrateurs</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-6">
-<div class="flex">
-    <div class="w-64 bg-blue-900 min-h-screen p-6 text-white">
+<body class="bg-gray-100 p-6 ml-64">
+
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+
         <?php include 'sidebar.php'; ?>
-    </div>
+ 
     <main class="flex-1 p-6">
         <h1 class="text-2xl font-bold mb-4">⚙ Gestion des Administrateurs</h1>
 
